@@ -8,14 +8,25 @@ import (
 	"github.com/plimble/ace-contrib/cors"
 )
 
+const (
+	ApiEndpoint = "/api/v1"
+
+	RoomEndpoint  = ApiEndpoint + "/room/:id"
+	RoomsEndpoint = ApiEndpoint + "/rooms"
+
+	ConnRoomEndpoint = ApiEndpoint + "/conn/room/:id"
+
+	Address = ":5000"
+)
+
 func main() {
 	a := ace.Default()
 
 	a.Use(cors.Cors(config.CorsOptions))
 
-	a.GET("/api/v1/room/:id", web.RoomHandler)
-	a.GET("/api/v1/rooms", web.RoomsHandler)
-	a.GET("/api/v1/conn/room/:id", socket.ConnectHandler)
+	a.GET(RoomEndpoint, web.RoomHandler)
+	a.GET(RoomsEndpoint, web.RoomsHandler)
+	a.GET(ConnRoomEndpoint, socket.ConnectHandler)
 
-	a.Run(":5000")
+	a.Run(Address)
 }
