@@ -1,13 +1,12 @@
 package socket
 
 import (
-	"github.com/bweben/berntube-server/model"
 	"github.com/bweben/berntube-server/web/helper"
 	"github.com/plimble/ace"
 	"strconv"
 )
 
-var hubs model.Hubs = make(model.Hubs)
+var hubs Hubs = make(Hubs)
 
 func ConnectHandler(c *ace.C) {
 	idParam := c.Param("id")

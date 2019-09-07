@@ -1,8 +1,7 @@
-package model
+package socket
 
 import (
 	"errors"
-	"github.com/bweben/berntube-server/web/socket"
 )
 
 type HubsErr string
@@ -16,7 +15,7 @@ const (
 	ErrFound    = HubsErr("cannot add hub because it already exists")
 )
 
-type Hubs map[int64]*socket.Hub
+type Hubs map[int64]*Hub
 
 func (h Hubs) Has(id int64) bool {
 	_, ok := h[id]
@@ -28,7 +27,7 @@ func (h Hubs) Has(id int64) bool {
 	return true
 }
 
-func (h Hubs) Get(id int64) (*socket.Hub, error) {
+func (h Hubs) Get(id int64) (*Hub, error) {
 	definition, ok := h[id]
 	if !ok {
 		return nil, errors.New("not found")
@@ -36,7 +35,7 @@ func (h Hubs) Get(id int64) (*socket.Hub, error) {
 	return definition, nil
 }
 
-func (h Hubs) Set(id int64, hub *socket.Hub) error {
+func (h Hubs) Set(id int64, hub *Hub) error {
 	if !h.Has(id) {
 		h[id] = hub
 		return nil
