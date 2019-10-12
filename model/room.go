@@ -1,10 +1,13 @@
 package model
 
+import "time"
+
 type Room struct {
-	Id      int
-	Name    string
-	Running YoutubeLink
-	Queue   []YoutubeLink
+	Id        int
+	Name      string
+	StartTime time.Time
+	Running   YoutubeLink
+	Queue     []YoutubeLink
 }
 
 var Rooms = []Room{
