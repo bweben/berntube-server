@@ -126,6 +126,7 @@ func createSocketIoServer() {
 	})
 
 	server.OnDisconnect("/", func(s socketio.Conn, msg string) {
+		s.LeaveAll()
 		fmt.Println("closed", msg)
 	})
 
