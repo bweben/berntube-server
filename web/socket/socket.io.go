@@ -1,0 +1,117 @@
+package socket
+
+import (
+	"fmt"
+	"github.com/bweben/berntube-server/model"
+	"github.com/bweben/berntube-server/web/helper"
+	engineio "github.com/googollee/go-engine.io"
+	"github.com/googollee/go-engine.io/transport"
+	"github.com/googollee/go-engine.io/transport/polling"
+	"github.com/googollee/go-engine.io/transport/websocket"
+	socketio "github.com/googollee/go-socket.io"
+	"log"
+	"net/http"
+	"strconv"
+	"time"
+)
+
+func CreateSocketIoServer(socketIoConn, socketIoAddress string) {
+	pt := polling.Default
+	wt := websocket.Default
+
+	wt.CheckOrigin = func(req *http.Request) bool {
+		return true
+	}
+
+	server, err := socketio.NewServer(&engineio.Options{
+		Transports: []transport.Transport{
+			pt,
+			wt,
+		},
+	})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	server.OnConnect("/", func(s socketio.Conn) error {
+		s.SetContext("")
+		fmt.Println("connected:", s.ID())
+		return nil
+	})
+
+	server.OnEvent("/", "join", func(s socketio.Conn, msg string) {
+		fmt.Println("room:")
+		fmt.Printf("%v", s.Rooms())
+		fmt.Println(msg)
+		s.Join(msg)
+		fmt.Printf("%v", s.Rooms())
+		fmt.Printf("%v", s.Context())
+		fmt.Println("---")
+
+		socketRoomNumber, err := strconv.Atoi(msg)
+
+		if err == nil {
+			indexInRoom := findRoomIndex(socketRoomNumber)
+
+			if indexInRoom != -1 {
+				room := model.Rooms[indexInRoom]
+				room.Running = model.Increase(room.Running, room.StartTime)
+				s.Emit("link-update", room)
+			}
+		}
+	})
+
+	server.OnEvent("/", "link", func(s socketio.Conn, msg string) {
+		fmt.Println("link: " + msg)
+		s.SetContext(msg)
+		for _, socketRoom := range s.Rooms() {
+			socketRoomNumber, err := strconv.Atoi(socketRoom)
+
+			if err == nil {
+				indexInRooms := findRoomIndex(socketRoomNumber)
+
+				if indexInRooms == -1 {
+					model.Rooms = append(model.Rooms, model.Room{
+						Id:        socketRoomNumber,
+						Name:      "",
+						Running:   model.YoutubeLink(msg),
+						Queue:     []model.YoutubeLink{},
+						StartTime: time.Now(),
+					})
+
+					indexInRooms = len(model.Rooms) - 1
+				} else {
+					model.Rooms[indexInRooms].Running = model.YoutubeLink(msg)
+				}
+
+				server.BroadcastToRoom(socketRoom, "link-update", model.Rooms[indexInRooms])
+			}
+		}
+	})
+
+	server.OnError("/", func(e error) {
+		fmt.Println("meet error", e)
+	})
+
+	server.OnDisconnect("/", func(s socketio.Conn, msg string) {
+		s.LeaveAll()
+		fmt.Println("closed", msg)
+	})
+
+	go server.Serve()
+	defer server.Close()
+
+	http.Handle(socketIoConn, helper.CorsMiddleware(server))
+	log.Fatal(http.ListenAndServe(socketIoAddress, nil))
+}
+
+func findRoomIndex(id int) (roomToFind int) {
+	roomToFind = -1
+	for index, room := range model.Rooms {
+		if room.Id == id {
+			roomToFind = index
+		}
+	}
+	return
+}
