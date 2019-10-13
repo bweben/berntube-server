@@ -90,6 +90,25 @@ func CreateSocketIoServer(socketIoConn, socketIoAddress string) {
 		}
 	})
 
+	server.OnEvent("/", "play", func(s socketio.Conn, msg bool) {
+		fmt.Println("play")
+		for _, socketRoom := range s.Rooms() {
+			server.BroadcastToRoom(socketRoom, "playing", true)
+		}
+	})
+
+	server.OnEvent("/", "pause", func(s socketio.Conn, msg bool) {
+		fmt.Println("pause")
+		for _, socketRoom := range s.Rooms() {
+			server.BroadcastToRoom(socketRoom, "playing", false)
+		}
+	})
+
+	server.OnEvent("/", "ended", func(s socketio.Conn, msg bool) {
+		fmt.Println("ended")
+		// todo: play next in queue
+	})
+
 	server.OnError("/", func(e error) {
 		fmt.Println("meet error", e)
 	})
@@ -97,6 +116,7 @@ func CreateSocketIoServer(socketIoConn, socketIoAddress string) {
 	server.OnDisconnect("/", func(s socketio.Conn, msg string) {
 		s.LeaveAll()
 		fmt.Println("closed", msg)
+		s.Close()
 	})
 
 	go server.Serve()
