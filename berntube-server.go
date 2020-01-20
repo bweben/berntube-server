@@ -4,8 +4,9 @@ import (
 	"github.com/bweben/berntube-server/config"
 	"github.com/bweben/berntube-server/web"
 	"github.com/bweben/berntube-server/web/socket"
-	"github.com/plimble/ace"
-	"github.com/plimble/ace-contrib/cors"
+	"github.com/go-martini/martini"
+	"github.com/martini-contrib/cors"
+	"github.com/martini-contrib/render"
 )
 
 const (
@@ -21,14 +22,15 @@ const (
 )
 
 func main() {
-	a := ace.Default()
+	server := martini.Classic()
 
-	a.Use(cors.Cors(config.CorsOptions))
+	server.Use(cors.Allow(config.CorsOptions))
+	server.Use(render.Renderer())
 
-	a.GET(RoomEndpoint, web.RoomHandler)
-	a.GET(RoomsEndpoint, web.RoomsHandler)
+	server.Get(RoomEndpoint, web.RoomHandler)
+	server.Get(RoomsEndpoint, web.RoomsHandler)
 
 	go socket.CreateSocketIoServer(SocketIoConn, SocketIoAddress)
 
-	a.Run(Address)
+	server.RunOnAddr(Address)
 }

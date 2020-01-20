@@ -2,9 +2,9 @@ package web
 
 import (
 	"github.com/bweben/berntube-server/model"
-	"github.com/plimble/ace"
+	"github.com/martini-contrib/render"
 )
 
-func RoomsHandler(c *ace.C) {
-	c.JSON(200, model.Rooms)
+func RoomsHandler(render render.Render) {
+	render.JSON(200, model.Rooms)
 }

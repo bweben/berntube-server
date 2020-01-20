@@ -36,18 +36,11 @@ func CreateSocketIoServer(socketIoConn, socketIoAddress string) {
 
 	server.OnConnect("/", func(s socketio.Conn) error {
 		s.SetContext("")
-		fmt.Println("connected:", s.ID())
 		return nil
 	})
 
 	server.OnEvent("/", "join", func(s socketio.Conn, msg string) {
-		fmt.Println("room:")
-		fmt.Printf("%v", s.Rooms())
-		fmt.Println(msg)
 		s.Join(msg)
-		fmt.Printf("%v", s.Rooms())
-		fmt.Printf("%v", s.Context())
-		fmt.Println("---")
 
 		socketRoomNumber, err := strconv.Atoi(msg)
 
@@ -63,7 +56,6 @@ func CreateSocketIoServer(socketIoConn, socketIoAddress string) {
 	})
 
 	server.OnEvent("/", "link", func(s socketio.Conn, msg string) {
-		fmt.Println("link: " + msg)
 		s.SetContext(msg)
 		for _, socketRoom := range s.Rooms() {
 			socketRoomNumber, err := strconv.Atoi(socketRoom)
@@ -91,14 +83,12 @@ func CreateSocketIoServer(socketIoConn, socketIoAddress string) {
 	})
 
 	server.OnEvent("/", "play", func(s socketio.Conn, msg bool) {
-		fmt.Println("play")
 		for _, socketRoom := range s.Rooms() {
 			server.BroadcastToRoom(socketRoom, "playing", true)
 		}
 	})
 
 	server.OnEvent("/", "pause", func(s socketio.Conn, msg bool) {
-		fmt.Println("pause")
 		for _, socketRoom := range s.Rooms() {
 			server.BroadcastToRoom(socketRoom, "playing", false)
 		}
@@ -115,7 +105,6 @@ func CreateSocketIoServer(socketIoConn, socketIoAddress string) {
 
 	server.OnDisconnect("/", func(s socketio.Conn, msg string) {
 		s.LeaveAll()
-		fmt.Println("closed", msg)
 		s.Close()
 	})
 

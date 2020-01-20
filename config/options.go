@@ -1,5 +1,5 @@
 package config
 
-import "github.com/plimble/ace-contrib/cors"
+import "github.com/martini-contrib/cors"
 
-var CorsOptions = cors.Options{AllowOrigins: []string{"*"}}
+var CorsOptions = &cors.Options{AllowOrigins: []string{"*"}}
