@@ -4,10 +4,9 @@ WORKDIR /go/src/app
 
 COPY . .
 
-RUN go get -d -v
-RUN go install -d -v
+RUN go build -o main .
 
 EXPOSE 5000
 EXPOSE 5001
 
-CMD ["berntube-server"]
+CMD ["./main"]
